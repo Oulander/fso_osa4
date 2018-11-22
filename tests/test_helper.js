@@ -1,12 +1,10 @@
 const Blog = require('../models/blog.js')
+const User = require('../models/user.js')
+const bcrypt = require('bcrypt')
 
-const format = (blog) => {
-  return {
-    title: blog.title,
-    author: blog.author,
-    url: blog.url,
-    likes: blog.likes
-  }
+async function createPasswordHash(password){
+  const passwordHash = await bcrypt.hash(password, 10)
+  return passwordHash
 }
 
 const initialBlogs = [
@@ -48,11 +46,44 @@ const initialBlogs = [
   }
 ]
 
+const initialUsers = [
+  {
+    username: 'user1',
+    name: 'marja',
+    passwordHash: createPasswordHash('asghj').toString(),
+    adult: true,
+  },
+  {
+    username: 'user2',
+    name: 'mikko',
+    passwordHash: createPasswordHash('werjh').toString(),
+    adult: false,
+  }
+]
+
 const blogsInDb = async () => {
   const blogs = await Blog.find({})
-  return blogs.map(format)
+  return blogs.map(Blog.format)
+}
+
+const nonExistingId = async () => {
+  const blog = new Blog()
+  await blog.save()
+  await blog.remove()
+
+  return blog._id.toString()
+}
+
+const usersInDb = async () => {
+  const users = await User.find({})
+  return users.map(User.format)
+}
+
+const randomUser = async () => {
+  const users = await User.find({})
+  return User.format(users[Math.floor(Math.random()*users.length)])
 }
 
 module.exports = {
-  initialBlogs, blogsInDb, format
+  initialBlogs, initialUsers, blogsInDb, nonExistingId, usersInDb, randomUser
 }
